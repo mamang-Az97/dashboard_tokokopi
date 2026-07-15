@@ -73,37 +73,34 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     st.title("📐 Predictive Analytics & Simulasi Regresi Berganda")
     st.markdown("Halaman ini menampilkan visualisasi hasil evaluasi model berdasarkan analisis statistik di Google Colab.")
     
-    # 1. Ekstraksi Parameter Statistik Secara Real-time
+    # 1. Ekstraksi Parameter Statistik Secara Real-time dari Model
     intercept = model.intercept_
     coef_harga = model.coef_[0]
     coef_rating = model.coef_[1]
-    
-    # Menghitung R-squared secara dinamis dari data
     r_sq = model.score(X, Y)
     
-    # Bagian Atas: Rumus Prediksi Aktual
+    # Bagian Atas: Rumus Prediksi Aktual (Menggunakan Format LaTeX yang Rapi)
     st.info("### 📐 Persamaan Fungsi Matematika Regresi Linier Berganda\n"
             f"$$Y = {intercept:,.2f} + ({coef_harga:,.6f} \\times \\text{{Harga}}) + ({coef_rating:,.2f} \\times \\text{{Rating}})$$")
     
     st.markdown("---")
     
     # Bagian Tengah: Kalkulator Prediksi Dinamis (Input User)
-    # ==================== PANDUAN KALKULATOR PREDIKSI SINKRON ====================
     st.subheader("🔮 Kalkulator Prediksi Penjualan Produk Baru")
     st.markdown("Geser kedua parameter di bawah ini untuk mensimulasikan estimasi volume penjualan:")
     
     col_in1, col_in2 = st.columns(2)
     with col_in1:
-        # Mengambil nilai min dan max langsung dari kolom Harga di dataset agar tidak mentok
+        # Mengambil batasan nilai langsung dari kolom Harga di dataset
         min_h = int(df_clean['Harga'].min())
         max_h = int(df_clean['Harga'].max())
         input_harga = st.slider("Tentukan Harga Produk (Rp):", 
                                 min_value=min_h, 
                                 max_value=max_h, 
-                                value=int(df_clean['Harga'].mean()), # Default di nilai rata-rata
+                                value=int(df_clean['Harga'].mean()), # Default nilai rata-rata pasar
                                 step=1000)
     with col_in2:
-        # Mengambil nilai min dan max langsung dari kolom Rating di dataset
+        # Mengambil batasan nilai langsung dari kolom Rating di dataset
         min_r = float(df_clean['Rating'].min())
         max_r = float(df_clean['Rating'].max())
         input_rating = st.slider("Estimasi Target Rating Produk:", 
@@ -112,28 +109,29 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
                                  value=4.5, 
                                  step=0.1)
         
-    # --- PROSES SIMULASI YANG DIJAMIN SINKRON ---
-    # 1. Buat DataFrame kecil dengan nama kolom yang SAMA PERSIS dengan saat training (X = df_clean[['Harga', 'Rating']])
-    # Ini wajib agar scikit-learn tidak salah membaca mana Harga dan mana Rating
+    # --- PROSES SIMULASI SINKRON (SUDAH DIPERBAIKI) ---
+    # Membuat DataFrame dengan nama kolom yang persis sama dengan saat model.fit()
     input_df = pd.DataFrame([{
         'Harga': input_harga,
         'Rating': input_rating
     }])
     
-    # 2. Lakukan prediksi menggunakan DataFrame input tersebut
+    # Komputasi prediksi tunggal secara live
     prediksi_terjual = model.predict(input_df)[0]
     
-    # 3. Kunci agar hasil prediksi tidak minus jika harga diset terlalu mahal
+    # Mengunci hasil agar volume terjual tidak bernilai negatif jika harga diset terlalu mahal
     prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
     
-    # 4. Tampilkan ke layar secara live
-    st.markdown(f"<h3 style='text-align: center; color: #FF4B4B;'>Estimasi Potensi Volume Terjual: {prediksi_terjual_final:,} Unit</h3>", unsafe_allow_html=True)        
-   
-    # Komputasi Prediksi Live
-    prediksi_terjual = model.predict([[input_harga, input_rating]])[0]
-    prediksi_terjual = max(0, int(round(prediksi_terjual))) # Mengunci agar hasil tidak minus
-    
-    st.markdown(f"<h3 style='text-align: center; color: #FF4B4B;'>Estimasi Potensi Volume Terjual: {prediksi_terjual:,} Unit</h3>", unsafe_allow_html=True)
+    # Menampilkan visualisasi output hasil kalkulasi interaktif
+    st.markdown(
+        f"""
+        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 5px solid #FF4B4B;'>
+            <h4 style='margin: 0; color: #31333F;'>Hasil Estimasi Potensi Pasar:</h4>
+            <h2 style='margin: 10px 0 0 0; color: #FF4B4B; text-align: center;'>{prediksi_terjual_final:,} Unit Produk Terjual</h2>
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
     
     st.markdown("---")
     
@@ -142,10 +140,9 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     with col_graph1:
         st.subheader("📊 Matriks Korelasi Pearson (Heatmap)")
-        # Membuat df korelasi dari kolom numerik utama di notebook
         corr_matrix = df_clean[['Harga', 'Rating', 'Terjual']].corr()
         
-        # Membuat plot heatmap menggunakan plotly graph objects
+        # Membuat plot heatmap interaktif menggunakan Plotly
         fig_corr = go.Figure(data=go.Heatmap(
             z=corr_matrix.values,
             x=corr_matrix.columns,
@@ -161,11 +158,11 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     with col_graph2:
         st.subheader("📋 Ringkasan Parameter Evaluasi Model")
         
-        # Membuat dataframe rangkuman statistik formal agar menyerupai tabel OLS statsmodels
+        # Membuat tabel rangkuman parameter formal yang terstruktur kembar dengan output Jupyter Notebook
         eval_data = {
             "Indikator Statistik": ["Koefisien Determinasi (R-Squared)", "Intersepsi Konstanta (a)", "Koefisien Bobot Harga (b1)", "Koefisien Bobot Rating (b2)"],
             "Nilai Parameter": [f"{r_sq:.4f} ({r_sq*100:.1f}%)", f"{intercept:,.4f}", f"{coef_harga:,.6f}", f"{coef_rating:,.4f}"],
-            "Status Signifikansi": ["Valid (Model Fit)", "Signifikan (p < 0.05)", "Signifikan Negatif", "Signifikan Positif"]
+            "Status Analisis": ["Valid (Model Fit)", "Signifikan Pengaruh", "Korelasi Negatif", "Korelasi Positif"]
         }
         df_eval = pd.DataFrame(eval_data)
         st.dataframe(df_eval, use_container_width=True, hide_index=True)
@@ -173,7 +170,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     st.markdown("---")
     
     # Scatter Plot Sebaran Data Asli
-    st.subheader("📈 Diagram Pencar (Scatter Plot) Distribusi Data")
+    st.subheader("📈 Diagram Pencar (Scatter Plot) Distribusi Data Asli")
     fig_scatter = px.scatter(df_clean, x='Harga', y='Terjual', color='Rating',
                              size='Terjual', hover_name='Nama Produk',
                              labels={'Harga': 'Harga (Rp)', 'Terjual': 'Jumlah Terjual'},
