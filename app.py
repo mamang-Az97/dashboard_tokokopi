@@ -91,45 +91,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     st.markdown("---")
     
-    # Bagian Tengah: Kalkulator Prediksi Dinamis (Input User)
-    st.subheader("🔮 Kalkulator Prediksi Penjualan Produk Baru")
-    st.markdown("Geser parameter di bawah ini untuk mensimulasikan estimasi volume penjualan:")
     
-    col_in1, col_in2 = st.columns(2)
-    with col_in1:
-        min_h = int(df_clean['Harga'].min())
-        max_h = int(df_clean['Harga'].max())
-        input_harga = st.slider("Tentukan Harga Produk (Rp):", 
-                                min_value=min_h, 
-                                max_value=max_h, 
-                                value=15000, 
-                                step=1000)
-    with col_in2:
-        min_r = float(df_clean['Rating'].min())
-        max_r = float(df_clean['Rating'].max())
-        input_rating = st.slider("Estimasi Target Rating Produk:", 
-                                 min_value=min_r, 
-                                 max_value=max_r, 
-                                 value=5.0, 
-                                 step=0.1)
-        
-    # --- PROSES SIMULASI SINKRON ---
-    input_df = pd.DataFrame([{'Harga': input_harga, 'Rating': input_rating}])
-    prediksi_terjual = model.predict(input_df)[0]
-    prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
-    
-    # Tampilan Output Interaktif Kontainer
-    st.markdown(
-        f"""
-        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 5px solid #FF4B4B; margin-top: 15px;'>
-            <h4 style='margin: 0; color: #31333F;'>Hasil Estimasi Potensi Volume Penjualan:</h4>
-            <h2 style='margin: 10px 0 0 0; color: #FF4B4B; text-align: center;'>{prediksi_terjual_final:,} Unit Produk Terjual</h2>
-        </div>
-        """, 
-        unsafe_allow_html=True
-    )
-    
-    st.markdown("---")
     
     # ==================== VISUALISASI PREDIKSI BARU (CARA LAIN) ====================
     st.subheader("📈 Visualisasi Perbandingan Data Aktual vs Model Prediksi")
