@@ -34,18 +34,40 @@ st.sidebar.markdown("Proyek Akhir Big Data & Predictive Analytics")
 page = st.sidebar.radio("Pilih Halaman Analisis:", ["1. Eksplorasi Data (EDA)", "2. Kalkulator Prediksi & Evaluasi"])
 
 # ==================== HALAMAN 1: EKSPLORASI DATA (EDA) ====================
+
 if page == "1. Eksplorasi Data (EDA)":
     st.title("📊 Eksplorasi Data & Deskriptif Pasar Kopi Tokopedia")
-    st.markdown("Halaman ini menyajikan ringkasan visual pasar produk kopi berdasarkan hasil web scraping Tokopedia.")
+    st.markdown("Halaman ini menyajikan ringkasan visual dan analisis deskriptif pasar produk kopi berdasarkan hasil web scraping Tokopedia.")
     
-    # Ringkasan Data (Scorecards / KPI Metrics)
+    # ------------------ BARU: PANEL FILTER INTERAKTIF (SIDEBAR / ATAS) ------------------
+    st.markdown("### 🔍 Panel Penyaringan Data")
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        # Pilihan filter berdasarkan varian kopi
+        opsi_varian = ["Semua Varian"] + list(df_clean['Varian Kopi'].unique())
+        filter_varian = st.selectbox("Saring berdasarkan Varian Kopi:", opsi_varian)
+    with col_f2:
+        # Pilihan filter berdasarkan lokasi toko
+        opsi_lokasi = ["Semua Lokasi"] + list(df_clean['Asal/Lokasi Toko'].unique())
+        filter_lokasi = st.selectbox("Saring berdasarkan Asal/Lokasi Toko:", opsi_lokasi)
+        
+    # Mengaplikasikan filter ke dataset lokal khusus halaman 1
+    df_filtered = df_clean.copy()
+    if filter_varian != "Semua Varian":
+        df_filtered = df_filtered[df_filtered['Varian Kopi'] == filter_varian]
+    if filter_lokasi != "Semua Lokasi":
+        df_filtered = df_filtered[df_filtered['Asal/Lokasi Toko'] == filter_lokasi]
+
+    st.markdown("---")
+    
+    # Ringkasan Data Utama (Scorecards / KPI Metrics) berdasarkan hasil filter
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric(label="Total Varian Produk Kopi", value=f"{df_clean['Nama Produk'].nunique():,}")
+        st.metric(label="Total Varian Produk Kopi", value=f"{df_filtered['Nama Produk'].nunique():,}")
     with col2:
-        st.metric(label="Total Produk Terjual (Unit)", value=f"{int(df_clean['Terjual'].sum()):,}")
+        st.metric(label="Total Produk Terjual (Unit)", value=f"{int(df_filtered['Terjual'].sum()):,}")
     with col3:
-        st.metric(label="Rata-rata Harga Produk di Pasar", value=f"Rp {df_clean['Harga'].mean():,.0f}")
+        st.metric(label="Rata-rata Harga Produk", value=f"Rp {df_filtered['Harga'].mean():,.0f}")
         
     st.markdown("---")
     
@@ -54,26 +76,44 @@ if page == "1. Eksplorasi Data (EDA)":
     
     with col_left:
         st.subheader("📍 10 Besar Lokasi Toko dengan Penjualan Tertinggi")
-        top_lokasi = df_clean.groupby('Asal/Lokasi Toko')['Terjual'].sum().reset_index()
+        top_lokasi = df_filtered.groupby('Asal/Lokasi Toko')['Terjual'].sum().reset_index()
         top_lokasi = top_lokasi.sort_values(by='Terjual', ascending=False).head(10)
         
-        fig_lokasi = px.bar(top_lokasi, x='Terjual', y='Asal/Lokasi Toko', orientation='h',
-                            labels={'Terjual': 'Total Terjual (Unit)', 'Asal/Lokasi Toko': 'Lokasi Toko'},
-                            color='Terjual', color_continuous_scale='Viridis')
-        fig_lokasi.update_layout(yaxis={'categoryorder':'total ascending'}, height=400)
-        st.plotly_chart(fig_lokasi, use_container_width=True)
+        # Jika hasil filter kosong/terlalu sedikit
+        if not top_lokasi.empty:
+            fig_lokasi = px.bar(top_lokasi, x='Terjual', y='Asal/Lokasi Toko', orientation='h',
+                                labels={'Terjual': 'Total Terjual (Unit)', 'Asal/Lokasi Toko': 'Lokasi Toko'},
+                                color='Terjual', color_continuous_scale='YlOrBr') # Warna diubah ke nuansa kopi
+            fig_lokasi.update_layout(yaxis={'categoryorder':'total ascending'}, height=380, margin=dict(l=20, r=20, t=20, b=20))
+            st.plotly_chart(fig_lokasi, use_container_width=True)
+        else:
+            st.warning("Tidak ada data lokasi toko yang sesuai dengan filter.")
         
     with col_right:
         st.subheader("☕ Proporsi Volume Penjualan Berdasarkan Varian Kopi")
-        varian_sales = df_clean.groupby('Varian Kopi')['Terjual'].sum().reset_index()
+        varian_sales = df_filtered.groupby('Varian Kopi')['Terjual'].sum().reset_index()
         
-        # Menggunakan palet sekuensial Blues yang aman dari AttributeError
-        fig_varian = px.pie(varian_sales, values='Terjual', names='Varian Kopi', 
-                            hole=0.4, color_discrete_sequence=px.colors.sequential.Blues)
-        fig_varian.update_layout(height=400)
-        st.plotly_chart(fig_varian, use_container_width=True)
+        if not varian_sales.empty:
+            fig_varian = px.pie(varian_sales, values='Terjual', names='Varian Kopi', 
+                                hole=0.4, color_discrete_sequence=px.colors.sequential.YlOrBr) # Gradasi warna kopi hangat
+            fig_varian.update_layout(height=380, margin=dict(l=20, r=20, t=20, b=20))
+            st.plotly_chart(fig_varian, use_container_width=True)
+        else:
+            st.warning("Tidak ada data varian kopi yang sesuai dengan filter.")
 
-# ==================== HALAMAN 2: PREDIKSI & EVALUASI DATA ====================
+    st.markdown("---")
+    
+    # ------------------ BARU: TABEL DETAIL SEBARAN DATASET TERLARIS ------------------
+    st.subheader("📋 Daftar 5 Produk Kopi Terlaris Berdasarkan Filter")
+    st.markdown("Tabel interaktif di bawah memuat rincian data produk kopi yang paling banyak diminati oleh pasar saat ini:")
+    
+    # Mengurutkan berdasarkan performa penjualan tertinggi
+    df_table = df_filtered[['Nama Produk', 'Varian Kopi', 'Harga', 'Rating', 'Terjual', 'Asal/Lokasi Toko']].sort_values(by='Terjual', ascending=False).head(5)
+    
+    # Menampilkan tabel interaktif tanpa kolom indeks bawaan pandas agar rapi
+    st.dataframe(df_table, use_container_width=True, hide_index=True)
+
+
 # ==================== HALAMAN 2: PREDIKSI & EVALUASI DATA ====================
 elif page == "2. Kalkulator Prediksi & Evaluasi":
     st.title("📐 Predictive Analytics & Simulasi Regresi Berganda")
