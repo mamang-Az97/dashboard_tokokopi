@@ -62,16 +62,14 @@ if page == "1. Eksplorasi Data (EDA)":
     
     # Ringkasan Data Utama (Scorecards / KPI Metrics) berdasarkan hasil filter
     col1, col2, col3, col4 = st.columns(3)
-    
     with col1:
-        st.metric(label="Total Data Mentah", value=f"{1700}")
-    with col2:
         st.metric(label="Total Varian Produk Kopi", value=f"{df_filtered['Nama Produk'].nunique():,}")
-    with col3:
+    with col2:
         st.metric(label="Total Produk Terjual (Unit)", value=f"{int(df_filtered['Terjual'].sum()):,}")
-    with col4:
+    with col3:
         st.metric(label="Rata-rata Harga Produk", value=f"Rp {df_filtered['Harga'].mean():,.0f}")
-        
+    with col4:
+        st.metric(label="Total Data Mentah", value=f"{1700}")
     st.markdown("---")
     
     # Pembagian Layout Diagram Visualisasi (Kiri & Kanan)
