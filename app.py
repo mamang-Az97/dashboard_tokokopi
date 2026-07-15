@@ -102,7 +102,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     prediksi_terjual = max(0, int(round(prediksi_terjual))) # Hasil tidak boleh negatif
     
     # Tampilkan Hasil Prediksi
-    st.markdown(f"<h3 style='text-align: center; color: #FF4B4B;'>Estimasi Potensi Penjualan: {prediksi_terjual:,} Unit Produk</h3>", unsafe_allowed_index=True)
+    st.markdown(f"<h3 style='text-align: center; color: #FF4B4B;'>Estimasi Potensi Penjualan: {prediksi_terjual:,} Unit Produk</h3>", unsafe_allow_html=True)
     
     st.markdown("---")
     
