@@ -97,7 +97,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
         input_harga = st.slider("Tentukan Harga Produk (Rp):", 
                                 min_value=min_h, 
                                 max_value=max_h, 
-                                value=int(df_clean['Harga'].mean()), # Default nilai rata-rata pasar
+                                value=25000, # Default nilai rata-rata pasar
                                 step=1000)
     with col_in2:
         # Mengambil batasan nilai langsung dari kolom Rating di dataset
@@ -106,7 +106,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
         input_rating = st.slider("Estimasi Target Rating Produk:", 
                                  min_value=min_r, 
                                  max_value=max_r, 
-                                 value=4.5, 
+                                 value=5.0, 
                                  step=0.1)
         
     # --- PROSES SIMULASI SINKRON (SUDAH DIPERBAIKI) ---
