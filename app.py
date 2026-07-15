@@ -88,9 +88,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     st.markdown("---")
     
     # Bagian Tengah: Kalkulator Prediksi Dinamis (Input User)
-    st.subheader("🔮 Kalkulator Prediksi Penjualan Produk Baru")
-    st.markdown("Geser parameter di bawah ini untuk mensimulasikan estimasi volume penjualan produk kopi baru:")
-    
+    # 1. Membuat Input Slider yang Ditampung ke Variabel
     col_in1, col_in2 = st.columns(2)
     with col_in1:
         input_harga = st.slider("Tentukan Harga Produk (Rp):", 
@@ -100,6 +98,19 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     with col_in2:
         input_rating = st.slider("Estimasi Target Rating Produk:", 
                                  min_value=4.0, max_value=5.0, value=4.8, step=0.1)
+        
+    # 2. PROSES SINKRONISASI UTAMA (Memasukkan Variabel Slider ke Model)
+    # Pastikan urutan kolom di dalam [[ ]] sama persis dengan urutan saat melatih model X = df_clean[['Harga', 'Rating']]
+    fitur_input = [[input_harga, input_rating]]
+    
+    # Menghitung prediksi secara langsung berdasarkan nilai slider ter-update
+    prediksi_terjual = model.predict(fitur_input)[0]
+    
+    # Mengunci agar volume penjualan tidak menghasilkan angka minus jika harga terlalu tinggi
+    prediksi_terjual = max(0, int(round(prediksi_terjual))) 
+    
+    # 3. Menampilkan Hasil yang Sudah Sinkron ke Layar
+    st.markdown(f"<h3 style='text-align: center; color: #FF4B4B;'>Estimasi Potensi Volume Terjual: {prediksi_terjual:,} Unit</h3>", unsafe_allow_html=True)
         
     # Komputasi Prediksi Live
     prediksi_terjual = model.predict([[input_harga, input_rating]])[0]
