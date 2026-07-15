@@ -29,7 +29,7 @@ model = LinearRegression()
 model.fit(X, Y)
 
 # ==================== 4. NAVIGASI SIDEBAR ====================
-st.sidebar.title("Navigasi Dashboard")
+st.sidebar.title("Dashboard")
 st.sidebar.markdown("Proyek Akhir Big Data & Predictive Analytics")
 page = st.sidebar.radio("Pilih Halaman Analisis:", ["1. Eksplorasi Data (EDA)", "2. Kalkulator Prediksi & Evaluasi"])
 
