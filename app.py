@@ -74,6 +74,7 @@ if page == "1. Eksplorasi Data (EDA)":
         st.plotly_chart(fig_varian, use_container_width=True)
 
 # ==================== HALAMAN 2: PREDIKSI & EVALUASI DATA ====================
+# ==================== HALAMAN 2: PREDIKSI & EVALUASI DATA ====================
 elif page == "2. Kalkulator Prediksi & Evaluasi":
     st.title("📐 Predictive Analytics & Simulasi Regresi Berganda")
     st.markdown("Halaman ini mengintegrasikan fungsi matematika hasil pemodelan regresi linier berganda kelompok secara interaktif.")
@@ -92,13 +93,12 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     # Bagian Tengah: Kalkulator Prediksi Dinamis (Input User)
     st.subheader("🔮 Kalkulator Prediksi Penjualan Produk Baru")
-    st.markdown("Geser parameter di bawah ini untuk mensimulasikan estimasi volume penjualan. Nilai awal diatur agar model langsung sinkron menampilkan data dinamis:")
+    st.markdown("Geser parameter di bawah ini untuk mensimulasikan estimasi volume penjualan:")
     
     col_in1, col_in2 = st.columns(2)
     with col_in1:
         min_h = int(df_clean['Harga'].min())
         max_h = int(df_clean['Harga'].max())
-        # Nilai awal (value) diatur rendah agar efek pengurang minus dari harga tidak menenggelamkan output ke angka 0
         input_harga = st.slider("Tentukan Harga Produk (Rp):", 
                                 min_value=min_h, 
                                 max_value=max_h, 
@@ -107,7 +107,6 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     with col_in2:
         min_r = float(df_clean['Rating'].min())
         max_r = float(df_clean['Rating'].max())
-        # Nilai awal diatur ke maksimal (5.0) untuk mendongkrak konstanta awal yang minus besar
         input_rating = st.slider("Estimasi Target Rating Produk:", 
                                  min_value=min_r, 
                                  max_value=max_r, 
@@ -115,13 +114,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
                                  step=0.1)
         
     # --- PROSES SIMULASI SINKRON ---
-    # Memasukkan input ke DataFrame dengan label kolom yang cocok dengan model training
-    input_df = pd.DataFrame([{
-        'Harga': input_harga,
-        'Rating': input_rating
-    }])
-    
-    # Komputasi prediksi live
+    input_df = pd.DataFrame([{'Harga': input_harga, 'Rating': input_rating}])
     prediksi_terjual = model.predict(input_df)[0]
     prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
     
@@ -135,6 +128,51 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
         """, 
         unsafe_allow_html=True
     )
+    
+    st.markdown("---")
+    
+    # ==================== VISUALISASI PREDIKSI BARU (CARA LAIN) ====================
+    st.subheader("📈 Visualisasi Perbandingan Data Aktual vs Model Prediksi")
+    st.markdown("Grafik di bawah ini memetakan seluruh data asli Tokopedia (titik biru) dan membandingkannya langsung dengan garis tren prediksi (garis merah) yang dihasilkan oleh model regresi kelompokmu.")
+    
+    # Membuat kolom prediksi untuk seluruh data di dataset agar bisa diplot
+    df_clean['Prediksi_Terjual'] = model.predict(df_clean[['Harga', 'Rating']])
+    df_clean['Prediksi_Terjual'] = df_clean['Prediksi_Terjual'].clip(lower=0) # Kunci biar tidak minus
+    
+    # Membuat chart gabungan (Scatter untuk data asli, Line untuk data prediksi)
+    fig_compare = go.Figure()
+    
+    # 1. Titik-titik Data Aktual
+    fig_compare.add_trace(go.Scatter(
+        x=df_clean['Harga'], 
+        y=df_clean['Terjual'],
+        mode='markers',
+        name='Data Aktual (Tokopedia)',
+        marker=dict(color='rgb(31, 119, 180)', size=6, opacity=0.6),
+        text=df_clean['Nama Produk'],
+        hovertemplate="<b>%{text}</b><br>Harga: Rp%{x:,}<br>Terjual Asli: %{y} unit<extra></extra>"
+    ))
+    
+    # 2. Garis Tren Hasil Prediksi Model
+    # Diurutkan berdasarkan harga agar garisnya rapi tidak zig-zag
+    df_sorted = df_clean.sort_values(by='Harga')
+    fig_compare.add_trace(go.Scatter(
+        x=df_sorted['Harga'], 
+        y=df_sorted['Prediksi_Terjual'],
+        mode='lines',
+        name='Garis Tren Prediksi Model',
+        line=dict(color='red', width=3),
+        hovertemplate="Harga: Rp%{x:,}<br>Estimasi Terjual: %{y:.0f} unit<extra></extra>"
+    ))
+    
+    fig_compare.update_layout(
+        xaxis_title="Harga Produk (Rupiah)",
+        yaxis_title="Jumlah Produk Terjual (Unit)",
+        legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99),
+        margin=dict(l=20, r=20, t=20, b=20),
+        height=450
+    )
+    st.plotly_chart(fig_compare, use_container_width=True)
     
     st.markdown("---")
     
@@ -159,22 +197,9 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
         
     with col_graph2:
         st.subheader("📋 Ringkasan Parameter Evaluasi Model")
-        
-        eval_data = {
+        df_eval = pd.DataFrame({
             "Indikator Statistik": ["Koefisien Determinasi (R-Squared)", "Intersepsi Konstanta (a)", "Koefisien Bobot Harga (b1)", "Koefisien Bobot Rating (b2)"],
             "Nilai Parameter": [f"{r_sq:.4f} ({r_sq*100:.1f}%)", f"{intercept:,.4f}", f"{coef_harga:,.6f}", f"{coef_rating:,.4f}"],
             "Status Analisis": ["Valid (Model Fit)", "Signifikan Pengaruh", "Korelasi Negatif", "Korelasi Positif"]
-        }
-        df_eval = pd.DataFrame(eval_data)
+        })
         st.dataframe(df_eval, use_container_width=True, hide_index=True)
-        
-    st.markdown("---")
-    
-    # Scatter Plot Distribusi Data Utama
-    st.subheader("📈 Diagram Pencar (Scatter Plot) Distribusi Data Asli Tokopedia")
-    fig_scatter = px.scatter(df_clean, x='Harga', y='Terjual', color='Rating',
-                             size='Terjual', hover_name='Nama Produk',
-                             labels={'Harga': 'Harga (Rp)', 'Terjual': 'Jumlah Terjual'},
-                             color_continuous_scale='Viridis')
-    fig_scatter.update_layout(height=450)
-    st.plotly_chart(fig_scatter, use_container_width=True)
