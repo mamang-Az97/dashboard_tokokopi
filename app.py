@@ -165,3 +165,12 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
             "Status Analisis": ["Valid (Model Fit)", "Signifikan Pengaruh", "Korelasi Negatif", "Korelasi Positif"]
         })
         st.dataframe(df_eval, use_container_width=True, hide_index=True)
+
+# Scatter Plot Distribusi Data Utama
+    st.subheader("📈 Diagram Pencar (Scatter Plot) Distribusi Data Asli Tokopedia")
+    fig_scatter = px.scatter(df_clean, x='Harga', y='Terjual', color='Rating',
+                             size='Terjual', hover_name='Nama Produk',
+                             labels={'Harga': 'Harga (Rp)', 'Terjual': 'Jumlah Terjual'},
+                             color_continuous_scale='Viridis')
+    fig_scatter.update_layout(height=450)
+    st.plotly_chart(fig_scatter, use_container_width=True)
