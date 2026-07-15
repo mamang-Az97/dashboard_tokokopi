@@ -64,7 +64,7 @@ if page == "1. Eksplorasi Data (EDA)":
         st.subheader("Proporsi Penjualan Berdasarkan Varian Kopi")
         varian_sales = df_clean.groupby('Varian Kopi')['Terjual'].sum().reset_index()
         fig_varian = px.pie(varian_sales, values='Terjual', names='Varian Kopi', 
-                            hole=0.4, color_discrete_sequence=px.colors.sequential.Plotlysh)
+                    hole=0.4, color_discrete_sequence=px.colors.sequential.Plotly)
         st.plotly_chart(fig_varian, use_container_width=True)
 
 # ==================== HALAMAN 2: PREDIKSI ====================
