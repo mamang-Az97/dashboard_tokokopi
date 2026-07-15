@@ -88,30 +88,47 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     st.markdown("---")
     
     # Bagian Tengah: Kalkulator Prediksi Dinamis (Input User)
-    # 1. Membuat Input Slider yang Ditampung ke Variabel
+    # ==================== PANDUAN KALKULATOR PREDIKSI SINKRON ====================
+    st.subheader("🔮 Kalkulator Prediksi Penjualan Produk Baru")
+    st.markdown("Geser kedua parameter di bawah ini untuk mensimulasikan estimasi volume penjualan:")
+    
     col_in1, col_in2 = st.columns(2)
     with col_in1:
+        # Mengambil nilai min dan max langsung dari kolom Harga di dataset agar tidak mentok
+        min_h = int(df_clean['Harga'].min())
+        max_h = int(df_clean['Harga'].max())
         input_harga = st.slider("Tentukan Harga Produk (Rp):", 
-                                min_value=int(df_clean['Harga'].min()), 
-                                max_value=int(df_clean['Harga'].max()), 
-                                value=50000, step=1000)
+                                min_value=min_h, 
+                                max_value=max_h, 
+                                value=int(df_clean['Harga'].mean()), # Default di nilai rata-rata
+                                step=1000)
     with col_in2:
+        # Mengambil nilai min dan max langsung dari kolom Rating di dataset
+        min_r = float(df_clean['Rating'].min())
+        max_r = float(df_clean['Rating'].max())
         input_rating = st.slider("Estimasi Target Rating Produk:", 
-                                 min_value=4.0, max_value=5.0, value=4.8, step=0.1)
+                                 min_value=min_r, 
+                                 max_value=max_r, 
+                                 value=4.5, 
+                                 step=0.1)
         
-    # 2. PROSES SINKRONISASI UTAMA (Memasukkan Variabel Slider ke Model)
-    # Pastikan urutan kolom di dalam [[ ]] sama persis dengan urutan saat melatih model X = df_clean[['Harga', 'Rating']]
-    fitur_input = [[input_harga, input_rating]]
+    # --- PROSES SIMULASI YANG DIJAMIN SINKRON ---
+    # 1. Buat DataFrame kecil dengan nama kolom yang SAMA PERSIS dengan saat training (X = df_clean[['Harga', 'Rating']])
+    # Ini wajib agar scikit-learn tidak salah membaca mana Harga dan mana Rating
+    input_df = pd.DataFrame([{
+        'Harga': input_harga,
+        'Rating': input_rating
+    }])
     
-    # Menghitung prediksi secara langsung berdasarkan nilai slider ter-update
-    prediksi_terjual = model.predict(fitur_input)[0]
+    # 2. Lakukan prediksi menggunakan DataFrame input tersebut
+    prediksi_terjual = model.predict(input_df)[0]
     
-    # Mengunci agar volume penjualan tidak menghasilkan angka minus jika harga terlalu tinggi
-    prediksi_terjual = max(0, int(round(prediksi_terjual))) 
+    # 3. Kunci agar hasil prediksi tidak minus jika harga diset terlalu mahal
+    prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
     
-    # 3. Menampilkan Hasil yang Sudah Sinkron ke Layar
-    st.markdown(f"<h3 style='text-align: center; color: #FF4B4B;'>Estimasi Potensi Volume Terjual: {prediksi_terjual:,} Unit</h3>", unsafe_allow_html=True)
-        
+    # 4. Tampilkan ke layar secara live
+    st.markdown(f"<h3 style='text-align: center; color: #FF4B4B;'>Estimasi Potensi Volume Terjual: {prediksi_terjual_final:,} Unit</h3>", unsafe_allow_html=True)        
+   
     # Komputasi Prediksi Live
     prediksi_terjual = model.predict([[input_harga, input_rating]])[0]
     prediksi_terjual = max(0, int(round(prediksi_terjual))) # Mengunci agar hasil tidak minus
