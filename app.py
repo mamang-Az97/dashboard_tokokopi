@@ -61,7 +61,7 @@ if page == "1. Eksplorasi Data (EDA)":
     st.markdown("---")
     
     # Ringkasan Data Utama (Scorecards / KPI Metrics) berdasarkan hasil filter
-    col1, col2, col3, col4 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric(label="Total Varian Produk Kopi", value=f"{df_filtered['Nama Produk'].nunique():,}")
     with col2:
