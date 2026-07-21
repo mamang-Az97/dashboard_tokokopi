@@ -151,8 +151,32 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
                                       value=harga_referensi, 
                                       step=5000)
 
-    with col_sim2:
-        input_rating = st.slider("Target Rating Produk:", min_value=4.0, max_value=5.0, value=4.9, step=0.1)
+    col_in1, col_in2 = st.columns(2)
+    with col_in1:
+        # Default harga dibuat murah (Rp 20.000) agar pengaruh rating langsung menonjol
+        input_harga = st.slider(
+            "Tentukan Harga Produk (Rp):", 
+            min_value=10000, 
+            max_value=200000, 
+            value=20000, 
+            step=5000
+        )
+    with col_in2:
+        # Rentang rating dibuat luas (1.0 - 5.0) agar dampak geseran rating terlihat jelas
+        input_rating = st.slider(
+            "Estimasi Target Rating Produk:", 
+            min_value=1.0, 
+            max_value=5.0, 
+            value=5.0, 
+            step=0.1
+        )
+        
+    # --- PROSES SIMULASI SINKRON ---
+    input_df = pd.DataFrame([{'Harga': input_harga, 'Rating': input_rating}])
+    prediksi_terjual = model.predict(input_df)[0]
+    
+    # Menampilkan hasil dengan pembulatan yang peka
+    prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
         
         # Menghitung Prediksi Unit Terjual
         input_df = pd.DataFrame([{'Harga': input_harga, 'Rating': input_rating}])
