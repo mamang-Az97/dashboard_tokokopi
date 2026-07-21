@@ -132,7 +132,56 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     st.markdown("---")
     
-    
+    # ==================== ALTERNATIF 1: 3D SURFACE PLOT ====================
+    st.subheader("🌐 Visualisasi Bidang Prediksi Regresi 3D Interaktif")
+    st.markdown("Grafik 3D di bawah ini memperlihatkan bagaimana variabel Harga ($X_1$) dan Rating ($X_2$) secara simultan membentuk bidang estimasi penjualan ($Y$). Anda dapat memutar grafik ini secara interaktif:")
+
+    # 1. Buat grid nilai untuk Harga dan Rating
+    harga_range = np.linspace(df_clean['Harga'].min(), df_clean['Harga'].max(), 30)
+    rating_range = np.linspace(df_clean['Rating'].min(), df_clean['Rating'].max(), 30)
+    harga_grid, rating_grid = np.meshgrid(harga_range, rating_range)
+
+    # 2. Hitung prediksi Z (Terjual) untuk seluruh titik grid
+    grid_input = pd.DataFrame({
+        'Harga': harga_grid.ravel(),
+        'Rating': rating_grid.ravel()
+    })
+    z_pred = model.predict(grid_input).reshape(harga_grid.shape)
+    z_pred = np.clip(z_pred, 0, None) # Kunci agar tidak minus
+
+    # 3. Plot menggunakan Plotly 3D Surface & Scatter
+    fig_3d = go.Figure()
+
+    # Menambahkan bidang prediksi 3D
+    fig_3d.add_trace(go.Surface(
+        x=harga_range, 
+        y=rating_range, 
+        z=z_pred, 
+        colorscale='YlOrBr', 
+        opacity=0.7,
+        name='Bidang Prediksi'
+    ))
+
+    # Menambahkan titik-titik data aktual
+    fig_3d.add_trace(go.Scatter3d(
+        x=df_clean['Harga'],
+        y=df_clean['Rating'],
+        z=df_clean['Terjual'],
+        mode='markers',
+        marker=dict(size=4, color='red', opacity=0.8),
+        name='Data Asli Tokopedia'
+    ))
+
+    fig_3d.update_layout(
+        scene=dict(
+            xaxis_title='Harga (Rp)',
+            yaxis_title='Rating',
+            zaxis_title='Terjual (Unit)'
+        ),
+        height=500,
+        margin=dict(l=10, r=10, t=10, b=10)
+    )
+    st.plotly_chart(fig_3d, use_container_width=True)
     
     # ==================== VISUALISASI PREDIKSI BARU (CARA LAIN) ====================
     st.subheader("📈 Visualisasi Perbandingan Data Aktual vs Model Prediksi")
