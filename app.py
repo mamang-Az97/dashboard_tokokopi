@@ -166,7 +166,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
         prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
         
         # Menghitung Prediksi Unit Terjual
-        input_df = pd.DataFrame([{'Harga': input_harga, 'Rating': input_rating}])
+        input_df = pd.DataFrame([{'Harga': input_harga])
         prediksi_terjual = model.predict(input_df)[0]
         prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
         
@@ -193,7 +193,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     rentang_harga = np.arange(10000, 205000, 5000)
     sim_data = []
     for h in rentang_harga:
-        p = max(0, int(round(model.predict(pd.DataFrame([{'Harga': h, 'Rating': input_rating}]))[0])))
+        p = max(0, int(round(model.predict(pd.DataFrame([{'Harga': h}]))[0])))
         omzet = h * p
         sim_data.append({'Harga': h, 'Terjual': p, 'Omzet': omzet})
 
@@ -202,7 +202,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     # Plot Garis Omzet vs Harga
     fig_omzet = px.line(df_sim_omzet, x='Harga', y='Omzet', 
                         labels={'Harga': 'Harga Produk (Rp)', 'Omzet': 'Proyeksi Omzet (Rp)'},
-                        title=f"Proyeksi Omzet Varian '{pilihan_varian}' pada Rating {input_rating}")
+                        title=f"Proyeksi Omzet Varian '{pilihan_varian}' )
     fig_omzet.add_vline(x=input_harga, line_dash="dash", line_color="red", annotation_text="Harga Pilihan Anda")
     fig_omzet.update_traces(line_color='#FF4B4B', line_width=3)
     fig_omzet.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=20))
