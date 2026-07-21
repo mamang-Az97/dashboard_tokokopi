@@ -132,24 +132,36 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     st.markdown("---")
     
-    st.subheader("🎯 Simulasi Perbandingan Skenario Strategi Bisnis")
-    st.markdown("Bandingkan potensi penjualan dari beberapa skenario penetapan harga dan rating produk secara bersamaan:")
+    st.subheader("🔥 Matriks Sensitivitas Estimasi Penjualan (Harga vs Rating)")
+    st.markdown("Peta warna di bawah ini menampilkan estimasi unit terjual untuk setiap kombinasi tingkat harga dan rating:")
 
-    st.subheader("🎯 Kalkulator Target Penjualan (Reverse Simulation)")
-    st.markdown("Masukkan target penjualan yang ingin dicapai, sistem akan menentukan batas harga ideal berdasarkan estimasi model regresi:")
+    # Buat rentang harga dan rating
+    list_harga = [10000, 25000, 50000, 100000, 200000, 400000]
+    list_rating = [4.0, 4.2, 4.5, 4.8, 5.0]
 
-    col_t1, col_t2 = st.columns(2)
-    with col_t1:
-        target_terjual = st.number_input("Masukkan Target Penjualan (Unit):", value=180, min_value=1, step=10)
-    with col_t2:
-        target_rating = st.slider("Asumsi Rating yang Akan Diraih:", min_value=4.0, max_value=5.0, value=5.0, step=0.1)
+    matrix_data = []
+    for r in list_rating:
+        row = []
+        for h in list_harga:
+            pred = model.predict(pd.DataFrame([{'Harga': h, 'Rating': r}]))[0]
+            row.append(max(0, int(round(pred))))
+        matrix_data.append(row)
 
-    # Rumus Kebalikan: Harga = (Target_Y - Intercept - (Coef_Rating * Rating)) / Coef_Harga
-    harga_rekomendasi = (target_terjual - intercept - (coef_rating * target_rating)) / coef_harga
-    harga_rekomendasi_final = max(0, int(round(harga_rekomendasi)))
-
-    st.success(f"💡 **Rekomendasi Harga:** Untuk mencapai target **{target_terjual} unit** dengan rating **{target_rating}**, harga maksimal produk disarankan bernilai **Rp {harga_rekomendasi_final:,}**.")
-    
+    fig_matrix = go.Figure(data=go.Heatmap(
+        z=matrix_data,
+        x=[f"Rp {h:,}" for h in list_harga],
+        y=[f"Rating {r}" for r in list_rating],
+        colorscale='Viridis',
+        text=matrix_data,
+        texttemplate="%{text} unit",
+        hoverongaps=False
+    ))
+    fig_matrix.update_layout(
+        xaxis_title="Variasi Harga Produk",
+        yaxis_title="Variasi Target Rating",
+        height=380
+    )
+    st.plotly_chart(fig_matrix, use_container_width=True)
     # ==================== VISUALISASI PREDIKSI BARU (CARA LAIN) ====================
     st.subheader("📈 Visualisasi Perbandingan Data Aktual vs Model Prediksi")
     st.markdown("Grafik di bawah ini memetakan seluruh data asli Tokopedia (titik biru) dan membandingkannya langsung dengan garis tren prediksi (garis merah) yang dihasilkan oleh model regresi kelompokmu.")
