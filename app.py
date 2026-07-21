@@ -132,41 +132,44 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     st.markdown("---")
     
-# ==================== ALTERNATIF 3: RESIDUAL PLOT ====================
-    st.subheader("📉 Analisis Sebaran Error Prediksi (Residual Plot)")
-    st.markdown("Grafik ini menampilkan selisih (*error*) antara angka penjualan asli dengan estimasi model. Sebaran yang acak di sekitar angka 0 menandakan model regresi stabil:")
+st.subheader("🎯 Simulasi Perbandingan Skenario Strategi Bisnis")
+    st.markdown("Bandingkan potensi penjualan dari beberapa skenario penetapan harga dan rating produk secara bersamaan:")
 
-    df_clean['Prediksi_Terjual'] = model.predict(df_clean[['Harga', 'Rating']]).clip(0)
-    df_clean['Residual'] = df_clean['Terjual'] - df_clean['Prediksi_Terjual']
+    # 1. Pilihan Preset Skenario Siap Pakai
+    col_s1, col_s2, col_s3 = st.columns(3)
+    with col_s1:
+        h1 = st.number_input("Skenario 1 (Harga Murah):", value=15000, step=1000)
+        r1 = st.number_input("Rating Skenario 1:", value=4.5, min_value=1.0, max_value=5.0, step=0.1)
+    with col_s2:
+        h2 = st.number_input("Skenario 2 (Harga Rata-Rata):", value=int(df_clean['Harga'].mean()), step=1000)
+        r2 = st.number_input("Rating Skenario 2:", value=4.8, min_value=1.0, max_value=5.0, step=0.1)
+    with col_s3:
+        h3 = st.number_input("Skenario 3 (Produk Premium):", value=80000, step=1000)
+        r3 = st.number_input("Rating Skenario 3:", value=5.0, min_value=1.0, max_value=5.0, step=0.1)
 
-    fig_res = go.Figure()
+    # 2. Proses Prediksi Massal Skenario
+    df_skenario = pd.DataFrame([
+        {"Nama Skenario": "Skenario 1: Harga Murah", "Harga": h1, "Rating": r1},
+        {"Nama Skenario": "Skenario 2: Harga Standard", "Harga": h2, "Rating": r2},
+        {"Nama Skenario": "Skenario 3: Premium High Rating", "Harga": h3, "Rating": r3}
+    ])
+    
+    df_skenario['Estimasi Terjual (Unit)'] = model.predict(df_skenario[['Harga', 'Rating']]).clip(0).round().astype(int)
 
-    # Titik residual
-    fig_res.add_trace(go.Scatter(
-        x=df_clean['Prediksi_Terjual'],
-        y=df_clean['Residual'],
-        mode='markers',
-        marker=dict(color='purple', size=6, opacity=0.6),
-        text=df_clean['Nama Produk'],
-        hovertemplate="<b>%{text}</b><br>Estimasi Prediksi: %{x:.0f}<br>Selisih Error: %{y:.0f} unit<extra></extra>"
-    ))
-
-    # Garis Nol
-    fig_res.add_trace(go.Scatter(
-        x=[df_clean['Prediksi_Terjual'].min(), df_clean['Prediksi_Terjual'].max()],
-        y=[0, 0],
-        mode='lines',
-        name='Batas Error Nol',
-        line=dict(color='red', width=2)
-    ))
-
-    fig_res.update_layout(
-        xaxis_title="Nilai Prediksi Penjualan",
-        yaxis_title="Selisih Error (Aktual - Prediksi)",
-        height=400,
-        margin=dict(l=20, r=20, t=20, b=20)
+    # 3. Visualisasi Grafik Batang Perbandingan Skenario
+    fig_skenario = px.bar(
+        df_skenario, x='Nama Skenario', y='Estimasi Terjual (Unit)',
+        color='Nama Skenario',
+        text='Estimasi Terjual (Unit)',
+        title="Perbandingan Potensi Penjualan Antar Skenario",
+        color_discrete_sequence=px.colors.qualitative.Set2
     )
-    st.plotly_chart(fig_res, use_container_width=True)
+    fig_skenario.update_traces(textposition='outside')
+    fig_skenario.update_layout(height=380, showlegend=False)
+    st.plotly_chart(fig_skenario, use_container_width=True)
+
+    # Tabel Rincian Skenario
+    st.dataframe(df_skenario, use_container_width=True, hide_index=True)
     
     # ==================== VISUALISASI PREDIKSI BARU (CARA LAIN) ====================
     st.subheader("📈 Visualisasi Perbandingan Data Aktual vs Model Prediksi")
