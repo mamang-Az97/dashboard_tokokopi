@@ -132,7 +132,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     st.markdown("---")
     
-st.subheader("🎯 Simulasi Perbandingan Skenario Strategi Bisnis")
+    st.subheader("🎯 Simulasi Perbandingan Skenario Strategi Bisnis")
     st.markdown("Bandingkan potensi penjualan dari beberapa skenario penetapan harga dan rating produk secara bersamaan:")
 
     # 1. Pilihan Preset Skenario Siap Pakai
