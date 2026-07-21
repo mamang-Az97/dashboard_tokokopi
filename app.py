@@ -144,12 +144,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
         # Mengambil harga rata-rata varian sebagai rekomendasi acuan dasar
         harga_referensi = int(df_clean[df_clean['Varian Kopi'] == pilihan_varian]['Harga'].mean())
         
-        # Input Harga Interaktif (Default otomatis terisi harga rekomendasi rata-rata pasar)
-        input_harga = st.number_input("Harga Jual Produk (Rp):", 
-                                      min_value=10000, 
-                                      max_value=int(df_clean['Harga'].max()), 
-                                      value=harga_referensi, 
-                                      step=5000)
+        
 
     col_in1, col_in2 = st.columns(2)
     with col_in1:
@@ -157,19 +152,11 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
         input_harga = st.slider(
             "Tentukan Harga Produk (Rp):", 
             min_value=10000, 
-            max_value=200000, 
+            max_value=20000000, 
             value=20000, 
             step=5000
         )
-    with col_in2:
-        # Rentang rating dibuat luas (1.0 - 5.0) agar dampak geseran rating terlihat jelas
-        input_rating = st.slider(
-            "Estimasi Target Rating Produk:", 
-            min_value=1.0, 
-            max_value=5.0, 
-            value=5.0, 
-            step=0.1
-        )
+    
         
     # --- PROSES SIMULASI SINKRON ---
         input_df = pd.DataFrame([{'Harga': input_harga, 'Rating': input_rating}])
