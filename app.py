@@ -174,14 +174,15 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     st.markdown("---")
     
-    # ==================== VISUALISASI GARIS TREN PREDIKSI ====================
+    # ==================== VISUALISASI PREDIKSI BARU (CARA LAIN) ====================
     st.subheader("📈 Visualisasi Perbandingan Data Aktual vs Model Prediksi")
     st.markdown("Grafik di bawah ini memetakan seluruh data asli Tokopedia (titik biru) dan membandingkannya langsung dengan garis tren prediksi (garis merah) yang dihasilkan oleh model regresi kelompokmu.")
     
     # Membuat kolom prediksi untuk seluruh data di dataset agar bisa diplot
     df_clean['Prediksi_Terjual'] = model.predict(df_clean[['Harga', 'Rating']])
-    df_clean['Prediksi_Terjual'] = df_clean['Prediksi_Terjual'].clip(lower=0)
+    df_clean['Prediksi_Terjual'] = df_clean['Prediksi_Terjual'].clip(lower=0) # Kunci biar tidak minus
     
+    # Membuat chart gabungan (Scatter untuk data asli, Line untuk data prediksi)
     fig_compare = go.Figure()
     
     # 1. Titik-titik Data Aktual
@@ -196,6 +197,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     ))
     
     # 2. Garis Tren Hasil Prediksi Model
+    # Diurutkan berdasarkan harga agar garisnya rapi tidak zig-zag
     df_sorted = df_clean.sort_values(by='Harga')
     fig_compare.add_trace(go.Scatter(
         x=df_sorted['Harga'], 
@@ -217,7 +219,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     st.markdown("---")
     
-    # ==================== BLOK EVALUASI MODEL & KORELASI ====================
+    # Bagian Bawah: Pembagian Blok Visualisasi Evaluasi (Korelasi & Ringkasan OLS)
     col_graph1, col_graph2 = st.columns(2)
     
     with col_graph1:
@@ -244,3 +246,12 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
             "Status Analisis": ["Valid (Model Fit)", "Signifikan Pengaruh", "Korelasi Negatif", "Korelasi Positif"]
         })
         st.dataframe(df_eval, use_container_width=True, hide_index=True)
+
+# Scatter Plot Distribusi Data Utama
+    st.subheader("📈 Diagram Pencar (Scatter Plot) Distribusi Data Asli Tokopedia")
+    fig_scatter = px.scatter(df_clean, x='Harga', y='Terjual', color='Rating',
+                             size='Terjual', hover_name='Nama Produk',
+                             labels={'Harga': 'Harga (Rp)', 'Terjual': 'Jumlah Terjual'},
+                             color_continuous_scale='Viridis')
+    fig_scatter.update_layout(height=450)
+    st.plotly_chart(fig_scatter, use_container_width=True)
