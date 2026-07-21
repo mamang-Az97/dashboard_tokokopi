@@ -132,36 +132,72 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     st.markdown("---")
     
-    st.subheader("🔥 Matriks Sensitivitas Estimasi Penjualan (Harga vs Rating)")
-    st.markdown("Peta warna di bawah ini menampilkan estimasi unit terjual untuk setiap kombinasi tingkat harga dan rating:")
+   # ==================== SIMULATOR REKOMENDASI HARGA & OMZET ====================
+    st.subheader("💡 Simulator Rekomendasi Harga & Proyeksi Omzet Pasar")
+    st.markdown("Pilih varian produk dan target rating untuk mendapatkan rekomendasi harga optimal beserta estimasi omzet penjualannya:")
 
-    # Buat rentang harga dan rating
-    list_harga = [10000, 25000, 50000, 100000, 200000, 400000]
-    list_rating = [4.0, 4.2, 4.5, 4.8, 5.0]
+    col_sim1, col_sim2 = st.columns(2)
+    with col_sim1:
+        # Pilihan Varian Kopi dari Dataset
+        pilihan_varian = st.selectbox("Pilih Varian Produk Kopi:", df_clean['Varian Kopi'].unique())
+        
+        # Mengambil harga rata-rata varian sebagai rekomendasi acuan dasar
+        harga_referensi = int(df_clean[df_clean['Varian Kopi'] == pilihan_varian]['Harga'].mean())
+        
+        # Input Harga Interaktif (Default otomatis terisi harga rekomendasi rata-rata pasar)
+        input_harga = st.number_input("Harga Jual Produk (Rp):", 
+                                      min_value=10000, 
+                                      max_value=int(df_clean['Harga'].max()), 
+                                      value=harga_referensi, 
+                                      step=5000)
 
-    matrix_data = []
-    for r in list_rating:
-        row = []
-        for h in list_harga:
-            pred = model.predict(pd.DataFrame([{'Harga': h, 'Rating': r}]))[0]
-            row.append(max(0, int(round(pred))))
-        matrix_data.append(row)
+    with col_sim2:
+        input_rating = st.slider("Target Rating Produk:", min_value=4.0, max_value=5.0, value=4.9, step=0.1)
+        
+        # Menghitung Prediksi Unit Terjual
+        input_df = pd.DataFrame([{'Harga': input_harga, 'Rating': input_rating}])
+        prediksi_terjual = model.predict(input_df)[0]
+        prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
+        
+        # Menghitung Estimasi Omzet Penjualan (Revenue)
+        estimasi_omzet = input_harga * prediksi_terjual_final
 
-    fig_matrix = go.Figure(data=go.Heatmap(
-        z=matrix_data,
-        x=[f"Rp {h:,}" for h in list_harga],
-        y=[f"Rating {r}" for r in list_rating],
-        colorscale='Viridis',
-        text=matrix_data,
-        texttemplate="%{text} unit",
-        hoverongaps=False
-    ))
-    fig_matrix.update_layout(
-        xaxis_title="Variasi Harga Produk",
-        yaxis_title="Variasi Target Rating",
-        height=380
-    )
-    st.plotly_chart(fig_matrix, use_container_width=True)
+    # ------------------ DISPLAY HASIL PREDIKSI & METRIK BISNIS ------------------
+    st.markdown("### 📊 Hasil Proyeksi Model Regresi:")
+    col_res1, col_res2, col_res3 = st.columns(3)
+    
+    with col_res1:
+        st.metric(label="Rekomendasi Harga Pasar", value=f"Rp {harga_referensi:,}")
+    with col_res2:
+        st.metric(label="Estimasi Potensi Terjual", value=f"{prediksi_terjual_final:,} Unit")
+    with col_res3:
+        st.metric(label="Proyeksi Total Omzet (Revenue)", value=f"Rp {estimasi_omzet:,}")
+
+    # ------------------ GRAFIK SIMULASI SENSITIVITAS HARGA VS OMZET ------------------
+    st.markdown("---")
+    st.subheader("📈 Kurva Sensitivas: Pengaruh Harga terhadap Total Omzet")
+    st.markdown("Grafik ini memperlihatkan titik harga paling optimal (*sweet spot*) untuk memaksimalkan total pendapatan toko:")
+
+    # Simulasi berbagai rentang harga dari Rp 10.000 s.d. Rp 200.000
+    rentang_harga = np.arange(10000, 205000, 5000)
+    sim_data = []
+    for h in rentang_harga:
+        p = max(0, int(round(model.predict(pd.DataFrame([{'Harga': h, 'Rating': input_rating}]))[0])))
+        omzet = h * p
+        sim_data.append({'Harga': h, 'Terjual': p, 'Omzet': omzet})
+
+    df_sim_omzet = pd.DataFrame(sim_data)
+
+    # Plot Garis Omzet vs Harga
+    fig_omzet = px.line(df_sim_omzet, x='Harga', y='Omzet', 
+                        labels={'Harga': 'Harga Produk (Rp)', 'Omzet': 'Proyeksi Omzet (Rp)'},
+                        title=f"Proyeksi Omzet Varian '{pilihan_varian}' pada Rating {input_rating}")
+    fig_omzet.add_vline(x=input_harga, line_dash="dash", line_color="red", annotation_text="Harga Pilihan Anda")
+    fig_omzet.update_traces(line_color='#FF4B4B', line_width=3)
+    fig_omzet.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=20))
+    
+    st.plotly_chart(fig_omzet, use_container_width=True)
+    
     # ==================== VISUALISASI PREDIKSI BARU (CARA LAIN) ====================
     st.subheader("📈 Visualisasi Perbandingan Data Aktual vs Model Prediksi")
     st.markdown("Grafik di bawah ini memetakan seluruh data asli Tokopedia (titik biru) dan membandingkannya langsung dengan garis tren prediksi (garis merah) yang dihasilkan oleh model regresi kelompokmu.")
