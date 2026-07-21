@@ -142,7 +142,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
         input_harga = st.slider(
             "Tentukan Harga Produk (Rp):", 
             min_value=10000, 
-            max_value=200000, 
+            max_value=20000000, 
             value=20000, 
             step=5000
         )
