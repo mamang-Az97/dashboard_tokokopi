@@ -132,56 +132,42 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     st.markdown("---")
     
-    # ==================== ALTERNATIF 1: 3D SURFACE PLOT ====================
-    st.subheader("🌐 Visualisasi Bidang Prediksi Regresi 3D Interaktif")
-    st.markdown("Grafik 3D di bawah ini memperlihatkan bagaimana variabel Harga ($X_1$) dan Rating ($X_2$) secara simultan membentuk bidang estimasi penjualan ($Y$). Anda dapat memutar grafik ini secara interaktif:")
+# ==================== ALTERNATIF 2: ACTUAL VS PREDICTED ====================
+    st.subheader("🎯 Diagram Pencar Keakuratan: Terjual Asli vs Hasil Prediksi")
+    st.markdown("Makin dekat titik-titik biru ke garis merah putus-putus (Garis Ideal 45°), artinya prediksi model kelompokmu makin mendekati kenyataan riil pasar:")
 
-    # 1. Buat grid nilai untuk Harga dan Rating
-    harga_range = np.linspace(df_clean['Harga'].min(), df_clean['Harga'].max(), 30)
-    rating_range = np.linspace(df_clean['Rating'].min(), df_clean['Rating'].max(), 30)
-    harga_grid, rating_grid = np.meshgrid(harga_range, rating_range)
+    df_clean['Prediksi_Terjual'] = model.predict(df_clean[['Harga', 'Rating']]).clip(0)
 
-    # 2. Hitung prediksi Z (Terjual) untuk seluruh titik grid
-    grid_input = pd.DataFrame({
-        'Harga': harga_grid.ravel(),
-        'Rating': rating_grid.ravel()
-    })
-    z_pred = model.predict(grid_input).reshape(harga_grid.shape)
-    z_pred = np.clip(z_pred, 0, None) # Kunci agar tidak minus
+    fig_act_pred = go.Figure()
 
-    # 3. Plot menggunakan Plotly 3D Surface & Scatter
-    fig_3d = go.Figure()
-
-    # Menambahkan bidang prediksi 3D
-    fig_3d.add_trace(go.Surface(
-        x=harga_range, 
-        y=rating_range, 
-        z=z_pred, 
-        colorscale='YlOrBr', 
-        opacity=0.7,
-        name='Bidang Prediksi'
-    ))
-
-    # Menambahkan titik-titik data aktual
-    fig_3d.add_trace(go.Scatter3d(
-        x=df_clean['Harga'],
-        y=df_clean['Rating'],
-        z=df_clean['Terjual'],
+    # Titik data perbandingan
+    fig_act_pred.add_trace(go.Scatter(
+        x=df_clean['Terjual'],
+        y=df_clean['Prediksi_Terjual'],
         mode='markers',
-        marker=dict(size=4, color='red', opacity=0.8),
-        name='Data Asli Tokopedia'
+        name='Produk Kopi',
+        marker=dict(color='orange', size=7, opacity=0.7),
+        text=df_clean['Nama Produk'],
+        hovertemplate="<b>%{text}</b><br>Terjual Asli: %{x} unit<br>Hasil Prediksi: %{y:.0f} unit<extra></extra>"
     ))
 
-    fig_3d.update_layout(
-        scene=dict(
-            xaxis_title='Harga (Rp)',
-            yaxis_title='Rating',
-            zaxis_title='Terjual (Unit)'
-        ),
-        height=500,
-        margin=dict(l=10, r=10, t=10, b=10)
+    # Garis acuan ideal 45 derajat
+    max_val = max(df_clean['Terjual'].max(), df_clean['Prediksi_Terjual'].max())
+    fig_act_pred.add_trace(go.Scatter(
+        x=[0, max_val],
+        y=[0, max_val],
+        mode='lines',
+        name='Garis Sempurna (100% Akurat)',
+        line=dict(color='red', dash='dash', width=2)
+    ))
+
+    fig_act_pred.update_layout(
+        xaxis_title="Volume Terjual Aktual (Data Asli)",
+        yaxis_title="Volume Terjual Prediksi (Model Regresi)",
+        height=450,
+        margin=dict(l=20, r=20, t=20, b=20)
     )
-    st.plotly_chart(fig_3d, use_container_width=True)
+    st.plotly_chart(fig_act_pred, use_container_width=True)
     
     # ==================== VISUALISASI PREDIKSI BARU (CARA LAIN) ====================
     st.subheader("📈 Visualisasi Perbandingan Data Aktual vs Model Prediksi")
