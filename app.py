@@ -172,11 +172,11 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
         )
         
     # --- PROSES SIMULASI SINKRON ---
-    input_df = pd.DataFrame([{'Harga': input_harga, 'Rating': input_rating}])
-    prediksi_terjual = model.predict(input_df)[0]
-    
-    # Menampilkan hasil dengan pembulatan yang peka
-    prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
+        input_df = pd.DataFrame([{'Harga': input_harga, 'Rating': input_rating}])
+        prediksi_terjual = model.predict(input_df)[0]
+        
+        # Menampilkan hasil dengan pembulatan yang peka
+        prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
         
         # Menghitung Prediksi Unit Terjual
         input_df = pd.DataFrame([{'Harga': input_harga, 'Rating': input_rating}])
