@@ -132,42 +132,41 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     st.markdown("---")
     
-# ==================== ALTERNATIF 2: ACTUAL VS PREDICTED ====================
-    st.subheader("🎯 Diagram Pencar Keakuratan: Terjual Asli vs Hasil Prediksi")
-    st.markdown("Makin dekat titik-titik biru ke garis merah putus-putus (Garis Ideal 45°), artinya prediksi model kelompokmu makin mendekati kenyataan riil pasar:")
+# ==================== ALTERNATIF 3: RESIDUAL PLOT ====================
+    st.subheader("📉 Analisis Sebaran Error Prediksi (Residual Plot)")
+    st.markdown("Grafik ini menampilkan selisih (*error*) antara angka penjualan asli dengan estimasi model. Sebaran yang acak di sekitar angka 0 menandakan model regresi stabil:")
 
     df_clean['Prediksi_Terjual'] = model.predict(df_clean[['Harga', 'Rating']]).clip(0)
+    df_clean['Residual'] = df_clean['Terjual'] - df_clean['Prediksi_Terjual']
 
-    fig_act_pred = go.Figure()
+    fig_res = go.Figure()
 
-    # Titik data perbandingan
-    fig_act_pred.add_trace(go.Scatter(
-        x=df_clean['Terjual'],
-        y=df_clean['Prediksi_Terjual'],
+    # Titik residual
+    fig_res.add_trace(go.Scatter(
+        x=df_clean['Prediksi_Terjual'],
+        y=df_clean['Residual'],
         mode='markers',
-        name='Produk Kopi',
-        marker=dict(color='orange', size=7, opacity=0.7),
+        marker=dict(color='purple', size=6, opacity=0.6),
         text=df_clean['Nama Produk'],
-        hovertemplate="<b>%{text}</b><br>Terjual Asli: %{x} unit<br>Hasil Prediksi: %{y:.0f} unit<extra></extra>"
+        hovertemplate="<b>%{text}</b><br>Estimasi Prediksi: %{x:.0f}<br>Selisih Error: %{y:.0f} unit<extra></extra>"
     ))
 
-    # Garis acuan ideal 45 derajat
-    max_val = max(df_clean['Terjual'].max(), df_clean['Prediksi_Terjual'].max())
-    fig_act_pred.add_trace(go.Scatter(
-        x=[0, max_val],
-        y=[0, max_val],
+    # Garis Nol
+    fig_res.add_trace(go.Scatter(
+        x=[df_clean['Prediksi_Terjual'].min(), df_clean['Prediksi_Terjual'].max()],
+        y=[0, 0],
         mode='lines',
-        name='Garis Sempurna (100% Akurat)',
-        line=dict(color='red', dash='dash', width=2)
+        name='Batas Error Nol',
+        line=dict(color='red', width=2)
     ))
 
-    fig_act_pred.update_layout(
-        xaxis_title="Volume Terjual Aktual (Data Asli)",
-        yaxis_title="Volume Terjual Prediksi (Model Regresi)",
-        height=450,
+    fig_res.update_layout(
+        xaxis_title="Nilai Prediksi Penjualan",
+        yaxis_title="Selisih Error (Aktual - Prediksi)",
+        height=400,
         margin=dict(l=20, r=20, t=20, b=20)
     )
-    st.plotly_chart(fig_act_pred, use_container_width=True)
+    st.plotly_chart(fig_res, use_container_width=True)
     
     # ==================== VISUALISASI PREDIKSI BARU (CARA LAIN) ====================
     st.subheader("📈 Visualisasi Perbandingan Data Aktual vs Model Prediksi")
