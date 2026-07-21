@@ -132,7 +132,51 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     
     st.markdown("---")
     
-   
+   # ==================== UJI ASUMSI KLASIK & ANALISIS RESIDUAL ====================
+    st.markdown("---")
+    st.subheader("🧪 Uji Asumsi Klasik & Analisis Residual Model")
+    st.markdown(
+        "Residual adalah selisih antara nilai penjualan aktual dengan nilai prediksi model ($e = Y - \\hat{Y}$). "
+        "Analisis ini digunakan untuk memverifikasi kelayakan model regresi (Linearity, Homoskedastisitas, dan Normalitas Error)."
+    )
+
+    # 1. Menghitung Residual
+    df_clean['Prediksi_Raw'] = model.predict(df_clean[['Harga', 'Rating']])
+    df_clean['Residual'] = df_clean['Terjual'] - df_clean['Prediksi_Raw']
+
+    col_res1, col_res2 = st.columns(2)
+
+    with col_res1:
+        st.markdown("#### 1. Residual Plot (Uji Homoskedastisitas)")
+        # Plot Scatter Residual vs Fitted Values
+        fig_res = px.scatter(
+            df_clean, 
+            x='Prediksi_Raw', 
+            y='Residual',
+            opacity=0.6,
+            labels={'Prediksi_Raw': 'Nilai Prediksi (Fitted Values)', 'Residual': 'Residual (Error)'},
+            hover_name='Nama Produk',
+            color_discrete_sequence=['#8B4513'] # Warna nuansa kopi
+        )
+        # Garis acuan Y=0
+        fig_res.add_hline(y=0, line_dash="dash", line_color="red", line_width=2)
+        fig_res.update_layout(height=380, margin=dict(l=20, r=20, t=20, b=20))
+        st.plotly_chart(fig_res, use_container_width=True)
+        st.caption("💡 **Interpretasi:** Jika sebaran titik menyebar secara acak di sekitar garis merah ($Y=0$), maka model terbebas dari masalah heteroskedastisitas.")
+
+    with col_res2:
+        st.markdown("#### 2. Distribusi Residual (Uji Normalitas Error)")
+        # Histogram Sebaran Error
+        fig_hist = px.histogram(
+            df_clean, 
+            x='Residual', 
+            nbins=30,
+            labels={'Residual': 'Nilai Residual (Error)'},
+            color_discrete_sequence=['#D2691E']
+        )
+        fig_hist.update_layout(height=380, margin=dict(l=20, r=20, t=20, b=20), yaxis_title="Frekuensi")
+        st.plotly_chart(fig_hist, use_container_width=True)
+        st.caption("💡 **Interpretasi:** Distribusi residual yang mendekati bentuk kurva lonceng (simetris) menunjukkan bahwa kesalahan prediksi terdistribusi secara normal.")
     
     # ==================== VISUALISASI PREDIKSI  ====================
     st.subheader("📈 Visualisasi Perbandingan Data Aktual vs Model Prediksi")
