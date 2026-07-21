@@ -166,7 +166,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
         prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
         
         # Menghitung Prediksi Unit Terjual
-        input_df = pd.DataFrame([{'Harga': input_harga])
+        input_df = pd.DataFrame([{'Harga': input_harga}])
         prediksi_terjual = model.predict(input_df)[0]
         prediksi_terjual_final = max(0, int(round(prediksi_terjual)))
         
