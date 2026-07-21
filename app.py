@@ -202,7 +202,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     # Plot Garis Omzet vs Harga
     fig_omzet = px.line(df_sim_omzet, x='Harga', y='Omzet', 
                         labels={'Harga': 'Harga Produk (Rp)', 'Omzet': 'Proyeksi Omzet (Rp)'},
-                        title=f"Proyeksi Omzet Varian '{pilihan_varian}' )
+                        title=f"Proyeksi Omzet Varian '{pilihan_varian}' ")
     fig_omzet.add_vline(x=input_harga, line_dash="dash", line_color="red", annotation_text="Harga Pilihan Anda")
     fig_omzet.update_traces(line_color='#FF4B4B', line_width=3)
     fig_omzet.update_layout(height=380, margin=dict(l=20, r=20, t=30, b=20))
