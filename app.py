@@ -135,7 +135,7 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     st.subheader("🎯 Simulasi Perbandingan Skenario Strategi Bisnis")
     st.markdown("Bandingkan potensi penjualan dari beberapa skenario penetapan harga dan rating produk secara bersamaan:")
 
-  st.subheader("🎯 Kalkulator Target Penjualan (Reverse Simulation)")
+    st.subheader("🎯 Kalkulator Target Penjualan (Reverse Simulation)")
     st.markdown("Masukkan target penjualan yang ingin dicapai, sistem akan menentukan batas harga ideal berdasarkan estimasi model regresi:")
 
     col_t1, col_t2 = st.columns(2)
