@@ -135,41 +135,20 @@ elif page == "2. Kalkulator Prediksi & Evaluasi":
     st.subheader("🎯 Simulasi Perbandingan Skenario Strategi Bisnis")
     st.markdown("Bandingkan potensi penjualan dari beberapa skenario penetapan harga dan rating produk secara bersamaan:")
 
-    # 1. Pilihan Preset Skenario Siap Pakai
-    col_s1, col_s2, col_s3 = st.columns(3)
-    with col_s1:
-        h1 = st.number_input("Skenario 1 (Harga Murah):", value=15000, step=1000)
-        r1 = st.number_input("Rating Skenario 1:", value=4.5, min_value=1.0, max_value=5.0, step=0.1)
-    with col_s2:
-        h2 = st.number_input("Skenario 2 (Harga Rata-Rata):", value=int(df_clean['Harga'].mean()), step=1000)
-        r2 = st.number_input("Rating Skenario 2:", value=4.8, min_value=1.0, max_value=5.0, step=0.1)
-    with col_s3:
-        h3 = st.number_input("Skenario 3 (Produk Premium):", value=80000, step=1000)
-        r3 = st.number_input("Rating Skenario 3:", value=5.0, min_value=1.0, max_value=5.0, step=0.1)
+  st.subheader("🎯 Kalkulator Target Penjualan (Reverse Simulation)")
+    st.markdown("Masukkan target penjualan yang ingin dicapai, sistem akan menentukan batas harga ideal berdasarkan estimasi model regresi:")
 
-    # 2. Proses Prediksi Massal Skenario
-    df_skenario = pd.DataFrame([
-        {"Nama Skenario": "Skenario 1: Harga Murah", "Harga": h1, "Rating": r1},
-        {"Nama Skenario": "Skenario 2: Harga Standard", "Harga": h2, "Rating": r2},
-        {"Nama Skenario": "Skenario 3: Premium High Rating", "Harga": h3, "Rating": r3}
-    ])
-    
-    df_skenario['Estimasi Terjual (Unit)'] = model.predict(df_skenario[['Harga', 'Rating']]).clip(0).round().astype(int)
+    col_t1, col_t2 = st.columns(2)
+    with col_t1:
+        target_terjual = st.number_input("Masukkan Target Penjualan (Unit):", value=180, min_value=1, step=10)
+    with col_t2:
+        target_rating = st.slider("Asumsi Rating yang Akan Diraih:", min_value=4.0, max_value=5.0, value=5.0, step=0.1)
 
-    # 3. Visualisasi Grafik Batang Perbandingan Skenario
-    fig_skenario = px.bar(
-        df_skenario, x='Nama Skenario', y='Estimasi Terjual (Unit)',
-        color='Nama Skenario',
-        text='Estimasi Terjual (Unit)',
-        title="Perbandingan Potensi Penjualan Antar Skenario",
-        color_discrete_sequence=px.colors.qualitative.Set2
-    )
-    fig_skenario.update_traces(textposition='outside')
-    fig_skenario.update_layout(height=380, showlegend=False)
-    st.plotly_chart(fig_skenario, use_container_width=True)
+    # Rumus Kebalikan: Harga = (Target_Y - Intercept - (Coef_Rating * Rating)) / Coef_Harga
+    harga_rekomendasi = (target_terjual - intercept - (coef_rating * target_rating)) / coef_harga
+    harga_rekomendasi_final = max(0, int(round(harga_rekomendasi)))
 
-    # Tabel Rincian Skenario
-    st.dataframe(df_skenario, use_container_width=True, hide_index=True)
+    st.success(f"💡 **Rekomendasi Harga:** Untuk mencapai target **{target_terjual} unit** dengan rating **{target_rating}**, harga maksimal produk disarankan bernilai **Rp {harga_rekomendasi_final:,}**.")
     
     # ==================== VISUALISASI PREDIKSI BARU (CARA LAIN) ====================
     st.subheader("📈 Visualisasi Perbandingan Data Aktual vs Model Prediksi")
